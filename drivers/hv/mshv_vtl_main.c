@@ -2795,12 +2795,15 @@ mshv_vtl_ioctl(struct file *filp, unsigned int ioctl, unsigned long arg)
 
 #if defined(CONFIG_ARM64)
 	case MSHV_REALM_CONFIG:
+		pr_warn("mshv_vtl_ioctl: REALM_CONFIG\n");
 		ret = mshv_realm_config((void __user *)arg);
 		break;
 	case MSHV_VTL_SYSREG_WRITE:
+		pr_warn("mshv_vtl_ioctl: SYSREG_WRITE\n");
 		ret = mshv_rsi_sysreg_write((void __user *)arg);
 		break;
 	case MSHV_VTL_SET_MEM_PERM:
+		pr_warn("mshv_vtl_ioctl: SET_MEM_PERM\n");
 		ret = mshv_rsi_set_mem_perm((void __user *)arg);
 		break;
 #endif
