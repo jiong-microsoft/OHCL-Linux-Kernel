@@ -320,13 +320,13 @@ struct mshv_rsi_sysreg_write {
 	__u8 vtl;
 	__u64 sysreg;
 	__u64 value;
-} __packed;
+};
 
 struct mshv_rsi_set_mem_perm {
 	__u8 plane;
 	__u64 base_addr;
 	__u64 top_addr;
-} __packed;
+};
 
 #define MSHV_IOCTL 0xB8
 
