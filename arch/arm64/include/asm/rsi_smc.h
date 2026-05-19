@@ -151,8 +151,16 @@
 #define SMC_RSI_PLANE_ENTER			SMC_RSI_FID(0x1A3)
 
 /*
- * arg0 == Architecturally-defined sysreg address
- * arg1 == Value
+ * arg0 == Plane index
+ * arg1 == Architecturally-defined sysreg address
+ * ret1 == Value
+ */
+#define SMC_RSI_PLANE_SYSREG_READ		SMC_RSI_FID(0x1AE)
+
+/*
+ * arg0 == Plane index
+ * arg1 == Architecturally-defined sysreg address
+ * arg2 == Value
  */
 #define SMC_RSI_PLANE_SYSREG_WRITE		SMC_RSI_FID(0x1AF)
 

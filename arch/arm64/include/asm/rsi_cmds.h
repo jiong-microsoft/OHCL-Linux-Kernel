@@ -218,12 +218,26 @@ static inline unsigned long rsi_plane_enter(unsigned plane, unsigned long run)
 	return res.a0;
 }
 
-static inline unsigned long rsi_plane_sysreg_write(unsigned long plane_idx, unsigned long sysreg, unsigned long value)
+static inline unsigned long rsi_plane_sysreg_write(unsigned long plane_idx,
+						   unsigned long sysreg,
+						   unsigned long value)
 {
 	struct arm_smccc_res res;
 
 	arm_smccc_1_1_invoke(SMC_RSI_PLANE_SYSREG_WRITE,
 			plane_idx, sysreg, value, 0, &res);
+	return res.a0;
+}
+
+static inline unsigned long rsi_plane_sysreg_read(unsigned long plane_idx,
+						  unsigned long sysreg,
+						  unsigned long *value)
+{
+	struct arm_smccc_res res;
+
+	arm_smccc_1_1_invoke(SMC_RSI_PLANE_SYSREG_READ,
+			plane_idx, sysreg, 0, 0, &res);
+	*value = res.a1;
 	return res.a0;
 }
 #endif /* __ASM_RSI_CMDS_H */

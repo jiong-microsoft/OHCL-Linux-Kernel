@@ -2573,40 +2573,78 @@ static long mshv_vtl_ioctl_guest_vsm_vmsa_pfn(void __user *user_arg)
 #if defined(CONFIG_ARM64)
 extern struct realm_config realm_config;
 
-	static long mshv_realm_config(void __user *user_realm_config)
-	{
-		return copy_to_user(user_realm_config, &realm_config, sizeof(realm_config)) ? -EFAULT : 0;
-	}
+static int mshv_rsi_vtl_to_plane(u8 vtl, unsigned long *plane_idx)
+{
+	/* TODO: CCA: need support for more than one plane */
+	if (vtl == 0) /* VTL0 */
+		*plane_idx = 1;
+	else if (vtl == 1) /* VTL1 */
+		*plane_idx = 1;
+	else
+		return -EINVAL;
 
-	static long mshv_rsi_sysreg_write(void __user *user_rsi_sysreg)
-	{
-		struct mshv_rsi_sysreg_write rsi_sysreg = {};
-		unsigned long plane_idx, a, b;
-		unsigned long ret;
-		
-		
-		if (copy_from_user(&rsi_sysreg, user_rsi_sysreg, sizeof(rsi_sysreg)))
-			return -EFAULT;
-		
-		pr_warn("mshv_rsi_sysreg_write sysreg: %lu. value: %lu\n", rsi_sysreg.sysreg, rsi_sysreg.value);
-		// TODO: CCA: need support for more than one plane
-		if (rsi_sysreg.vtl == 0) /* VTL0 */
-			plane_idx = 1;
-		else if (rsi_sysreg.vtl == 1) /* VTL1 */
-			plane_idx = 1;
-		else
-			return -EINVAL;
-		
-		// TODO: CCA: check if the sysreg write is valid
+	return 0;
+}
 
-		ret = rsi_plane_sysreg_write(plane_idx, rsi_sysreg.sysreg, rsi_sysreg.value);
-		if (ret != 0) {
-			pr_err("mshv_rsi_sysreg_write: failed to write sysreg, ret=%lu\n", ret);
-			return ret;
-		}
+static long mshv_realm_config(void __user *user_realm_config)
+{
+	return copy_to_user(user_realm_config, &realm_config,
+			    sizeof(realm_config)) ? -EFAULT : 0;
+}
 
+static long mshv_rsi_sysreg_read(void __user *user_rsi_sysreg)
+{
+	struct mshv_rsi_sysreg_read rsi_sysreg = {};
+	unsigned long plane_idx;
+	unsigned long value;
+	long ret;
+
+	if (copy_from_user(&rsi_sysreg, user_rsi_sysreg, sizeof(rsi_sysreg)))
+		return -EFAULT;
+
+	ret = mshv_rsi_vtl_to_plane(rsi_sysreg.vtl, &plane_idx);
+	if (ret)
+		return ret;
+
+	ret = rsi_plane_sysreg_read(plane_idx, rsi_sysreg.sysreg, &value);
+	if (ret) {
+		pr_err("%s: failed to read sysreg, ret=%ld\n", __func__, ret);
 		return ret;
 	}
+
+	rsi_sysreg.value = value;
+
+	return copy_to_user(user_rsi_sysreg, &rsi_sysreg,
+			    sizeof(rsi_sysreg)) ? -EFAULT : 0;
+}
+
+static long mshv_rsi_sysreg_write(void __user *user_rsi_sysreg)
+{
+	struct mshv_rsi_sysreg_write rsi_sysreg = {};
+	unsigned long plane_idx;
+	long ret;
+
+	if (copy_from_user(&rsi_sysreg, user_rsi_sysreg, sizeof(rsi_sysreg)))
+		return -EFAULT;
+
+	pr_warn("%s: sysreg: %llu. value: %llu\n", __func__,
+		rsi_sysreg.sysreg, rsi_sysreg.value);
+
+	ret = mshv_rsi_vtl_to_plane(rsi_sysreg.vtl, &plane_idx);
+	if (ret)
+		return ret;
+
+	/* TODO: CCA: check if the sysreg write is valid */
+
+	ret = rsi_plane_sysreg_write(plane_idx, rsi_sysreg.sysreg, rsi_sysreg.value);
+	if (ret != 0) {
+		pr_err("%s: failed to write sysreg, ret=%ld\n", __func__,
+		       ret);
+		return ret;
+	}
+
+	return ret;
+}
 
 	static long mshv_rsi_set_mem_perm(void __user *user_mem_perm)
 	{
@@ -2797,6 +2835,10 @@ mshv_vtl_ioctl(struct file *filp, unsigned int ioctl, unsigned long arg)
 	case MSHV_REALM_CONFIG:
 		pr_warn("mshv_vtl_ioctl: REALM_CONFIG\n");
 		ret = mshv_realm_config((void __user *)arg);
+		break;
+	case MSHV_VTL_SYSREG_READ:
+		pr_warn("%s: SYSREG_READ\n", __func__);
+		ret = mshv_rsi_sysreg_read((void __user *)arg);
 		break;
 	case MSHV_VTL_SYSREG_WRITE:
 		pr_warn("mshv_vtl_ioctl: SYSREG_WRITE\n");

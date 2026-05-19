@@ -316,6 +316,12 @@ struct mshv_partition_time {
 #define MSHV_KICK_CPUS_FLAG_WAIT_FOR_CPUS	(1 << 0)
 #define MSHV_KICK_CPUS_FLAG_CANCEL_CPU_RUN	(1 << 1)
 
+struct mshv_rsi_sysreg_read {
+	__u8 vtl;
+	__u64 sysreg;
+	__u64 value;
+};
+
 struct mshv_rsi_sysreg_write {
 	__u8 vtl;
 	__u64 sysreg;
@@ -400,8 +406,9 @@ struct mshv_rsi_set_mem_perm {
 
 /* For aarch64 only - get realm config values */
 #define MSHV_REALM_CONFIG       _IOR(MSHV_IOCTL, 0x41, struct realm_config)
-#define MSHV_VTL_SYSREG_WRITE   _IOW(MSHV_IOCTL, 0x42, struct mshv_rsi_sysreg_write)
-#define MSHV_VTL_SET_MEM_PERM   _IOW(MSHV_IOCTL, 0x43, struct mshv_rsi_set_mem_perm)
+#define MSHV_VTL_SYSREG_READ    _IOWR(MSHV_IOCTL, 0x42, struct mshv_rsi_sysreg_read)
+#define MSHV_VTL_SYSREG_WRITE   _IOW(MSHV_IOCTL, 0x43, struct mshv_rsi_sysreg_write)
+#define MSHV_VTL_SET_MEM_PERM   _IOW(MSHV_IOCTL, 0x44, struct mshv_rsi_set_mem_perm)
 
 /* VMBus device IOCTLs */
 #define MSHV_SINT_SIGNAL_EVENT    _IOW(MSHV_IOCTL, 0x22, struct mshv_vtl_signal_event)
