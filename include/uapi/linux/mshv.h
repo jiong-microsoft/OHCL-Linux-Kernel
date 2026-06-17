@@ -334,6 +334,11 @@ struct mshv_rsi_set_mem_perm {
 	__u64 top_addr;
 };
 
+struct mshv_rsi_get_ipa_state {
+	__u64 fipa; /* Faulting address to have RIPAS state checked */
+	__u64 state; /* RIPAS state */
+};
+
 #define MSHV_IOCTL 0xB8
 
 /* mshv device */
@@ -409,6 +414,7 @@ struct mshv_rsi_set_mem_perm {
 #define MSHV_VTL_SYSREG_READ    _IOWR(MSHV_IOCTL, 0x42, struct mshv_rsi_sysreg_read)
 #define MSHV_VTL_SYSREG_WRITE   _IOW(MSHV_IOCTL, 0x43, struct mshv_rsi_sysreg_write)
 #define MSHV_VTL_SET_MEM_PERM   _IOW(MSHV_IOCTL, 0x44, struct mshv_rsi_set_mem_perm)
+#define MSHV_VTL_GET_IPA_STATE  _IOWR(MSHV_IOCTL, 0x45, struct mshv_rsi_get_ipa_state)
 
 /* VMBus device IOCTLs */
 #define MSHV_SINT_SIGNAL_EVENT    _IOW(MSHV_IOCTL, 0x22, struct mshv_vtl_signal_event)

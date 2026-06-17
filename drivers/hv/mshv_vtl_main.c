@@ -2673,6 +2673,35 @@ static long mshv_rsi_sysreg_write(void __user *user_rsi_sysreg)
 		return 0;
 	}
 
+	static long mshv_rsi_get_ipa_state(void __user *user_ipa_state) {
+
+		struct mshv_rsi_get_ipa_state plane_state = {};
+		enum ripas state;
+		phys_addr_t start, end, top;
+		int ret;
+
+		if (copy_from_user(&plane_state, user_ipa_state, sizeof(plane_state)))
+			return -EFAULT;
+
+		start = ALIGN_DOWN(plane_state.fipa, RSI_GRANULE_SIZE);
+		end = start + RSI_GRANULE_SIZE;
+
+		ret = rsi_ipa_state_get(start, end, &state, &top);
+
+		pr_warn("state of %llu, %llu : %lu\n",
+        (unsigned long long)start,
+        (unsigned long long)end,
+        state);
+
+		if (ret != RSI_SUCCESS)
+			return -1;
+
+		plane_state.state = state;
+
+		return copy_to_user(user_ipa_state, &plane_state,
+			    sizeof(plane_state)) ? -EFAULT : 0;
+	}
+
 #endif
 
 static void ack_kick(void *cancel_cpu_run)
@@ -2759,6 +2788,10 @@ mshv_vtl_ioctl(struct file *filp, unsigned int ioctl, unsigned long arg)
 {
 	long ret;
 	struct mshv_vtl *vtl = filp->private_data;
+
+	pr_warn("MSHV_VTL_GET_IPA_STATE=%#x sizeof=%zu\n",
+        MSHV_VTL_GET_IPA_STATE,
+        sizeof(struct mshv_rsi_get_ipa_state));
 
 	pr_warn("mshv_vtl_ioctl: ID: %#x\n", ioctl);
 	switch (ioctl) {
@@ -2847,6 +2880,10 @@ mshv_vtl_ioctl(struct file *filp, unsigned int ioctl, unsigned long arg)
 	case MSHV_VTL_SET_MEM_PERM:
 		pr_warn("mshv_vtl_ioctl: SET_MEM_PERM\n");
 		ret = mshv_rsi_set_mem_perm((void __user *)arg);
+		break;
+	case MSHV_VTL_GET_IPA_STATE:
+		pr_warn("mshv_vtl_ioctl: GET_IPA_STATE\n");
+		ret = mshv_rsi_get_ipa_state((void __user *)arg);
 		break;
 #endif
 
@@ -3552,7 +3589,7 @@ static int __init mshv_vtl_init(void)
 
     /*
      * Hopefully this doesn't get used by userspace.
-     * 
+     *
      *	ret = misc_register(&mshv_vtl_sint_dev);
      *	if (ret)
      *		goto unset_func;
