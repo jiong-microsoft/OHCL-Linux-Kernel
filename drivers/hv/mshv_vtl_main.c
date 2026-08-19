@@ -2627,8 +2627,10 @@ static long mshv_rsi_sysreg_write(void __user *user_rsi_sysreg)
 	if (copy_from_user(&rsi_sysreg, user_rsi_sysreg, sizeof(rsi_sysreg)))
 		return -EFAULT;
 
+#if 0
 	pr_warn("%s: sysreg: %llu. value: %llu\n", __func__,
 		rsi_sysreg.sysreg, rsi_sysreg.value);
+#endif
 
 	ret = mshv_rsi_vtl_to_plane(rsi_sysreg.vtl, &plane_idx);
 	if (ret)
@@ -2654,8 +2656,10 @@ static long mshv_rsi_sysreg_write(void __user *user_rsi_sysreg)
 		if (copy_from_user(&rsi_mem_perm, user_mem_perm, sizeof(rsi_mem_perm)))
 			return -EFAULT;
 
+#if 0
 		pr_warn("mshv_rsi_set_mem_perm: plane=%u, base_addr=0x%llx, top_addr=0x%llx\n",
 			rsi_mem_perm.plane, rsi_mem_perm.base_addr, rsi_mem_perm.top_addr);
+#endif
 
 		ret = rsi_mem_set_perm(rsi_mem_perm.plane, PLANE_N_MIN_PERM_IDX, PLANE_N_PERM);
 		if (ret < 0) {
@@ -2760,30 +2764,24 @@ mshv_vtl_ioctl(struct file *filp, unsigned int ioctl, unsigned long arg)
 	long ret;
 	struct mshv_vtl *vtl = filp->private_data;
 
-	pr_warn("mshv_vtl_ioctl: ID: %#x\n", ioctl);
+	//pr_warn("mshv_vtl_ioctl: ID: %#x\n", ioctl);
 	switch (ioctl) {
 	case MSHV_VTL_SET_POLL_FILE:
 		ret = mshv_vtl_ioctl_set_poll_file(
 			(struct mshv_vtl_set_poll_file *)arg);
 		break;
 	case MSHV_GET_VP_REGISTERS:
-		// this should not be called for TMK
-		pr_warn("mshv_vtl_ioctl: MSHV_GET_VP_REGISTERS\n");
-		// ret = mshv_vtl_ioctl_get_regs((void __user *)arg);
-		ret = 0;
+		ret = mshv_vtl_ioctl_get_regs((void __user *)arg);
 		break;
 	case MSHV_SET_VP_REGISTERS:
-		// this should not be called for TMK
-		pr_warn("mshv_vtl_ioctl: MSHV_SET_VP_REGISTERS\n");
-		// ret = mshv_vtl_ioctl_set_regs((void __user *)arg);
-		ret = 0;
+		ret = mshv_vtl_ioctl_set_regs((void __user *)arg);
 		break;
 	case MSHV_VTL_RETURN_TO_LOWER_VTL:
-		pr_warn("mshv_vtl_ioctl: MSHV_VTL_RETURN_TO_LOWER_VTL\n");
+		//pr_warn("mshv_vtl_ioctl: MSHV_VTL_RETURN_TO_LOWER_VTL\n");
 		ret = mshv_vtl_ioctl_return_to_lower_vtl();
 		break;
 	case MSHV_VTL_ADD_VTL0_MEMORY:
-		pr_warn("mshv_vtl_ioctl: MSHV_VTL_ADD_VTL0_MEMORY\n");
+		//pr_warn("mshv_vtl_ioctl: MSHV_VTL_ADD_VTL0_MEMORY\n");
 		// ret = mshv_vtl_ioctl_add_vtl0_mem(vtl, (void __user *)arg);
 		ret = 0;
 		break;
@@ -2833,19 +2831,19 @@ mshv_vtl_ioctl(struct file *filp, unsigned int ioctl, unsigned long arg)
 
 #if defined(CONFIG_ARM64)
 	case MSHV_REALM_CONFIG:
-		pr_warn("mshv_vtl_ioctl: REALM_CONFIG\n");
+		//pr_warn("mshv_vtl_ioctl: REALM_CONFIG\n");
 		ret = mshv_realm_config((void __user *)arg);
 		break;
 	case MSHV_VTL_SYSREG_READ:
-		pr_warn("%s: SYSREG_READ\n", __func__);
+		//pr_warn("%s: SYSREG_READ\n", __func__);
 		ret = mshv_rsi_sysreg_read((void __user *)arg);
 		break;
 	case MSHV_VTL_SYSREG_WRITE:
-		pr_warn("mshv_vtl_ioctl: SYSREG_WRITE\n");
+		//pr_warn("mshv_vtl_ioctl: SYSREG_WRITE\n");
 		ret = mshv_rsi_sysreg_write((void __user *)arg);
 		break;
 	case MSHV_VTL_SET_MEM_PERM:
-		pr_warn("mshv_vtl_ioctl: SET_MEM_PERM\n");
+		//pr_warn("mshv_vtl_ioctl: SET_MEM_PERM\n");
 		ret = mshv_rsi_set_mem_perm((void __user *)arg);
 		break;
 #endif
@@ -3320,12 +3318,12 @@ static long mshv_vtl_hvcall_ioctl(struct file *f, unsigned int cmd, unsigned lon
 
 	switch (cmd) {
 	case MSHV_HVCALL_SETUP:
-		pr_warn("mshv_vtl_hvcall_ioctl: MSHV_HVCALL_SETUP\n");
-		// return mshv_vtl_hvcall_setup(fd, (struct mshv_vtl_hvcall_setup __user *)arg);
+		//pr_warn("mshv_vtl_hvcall_ioctl: MSHV_HVCALL_SETUP\n");
+		return mshv_vtl_hvcall_setup(fd, (struct mshv_vtl_hvcall_setup __user *)arg);
 		return 0;
 	case MSHV_HVCALL:
-		pr_warn("mshv_vtl_hvcall_ioctl: MSHV_HVCALL\n");
-		// return mshv_vtl_hvcall_call(fd, (struct mshv_vtl_hvcall __user *)arg);
+		//pr_warn("mshv_vtl_hvcall_ioctl: MSHV_HVCALL\n");
+		return mshv_vtl_hvcall_call(fd, (struct mshv_vtl_hvcall __user *)arg);
 		return 0;
 	default:
 		break;

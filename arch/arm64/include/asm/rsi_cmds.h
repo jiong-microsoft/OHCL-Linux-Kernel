@@ -212,7 +212,7 @@ static inline unsigned long rsi_plane_enter(unsigned plane, unsigned long run)
 {
 	struct arm_smccc_res res;
 
-	pr_warn("rsi_plane_enter: plane=%dq, virt run=%lu\n", plane, run);
+	//pr_warn("rsi_plane_enter: plane=%dq, virt run=%lu\n", plane, run);
 	arm_smccc_1_1_invoke(SMC_RSI_PLANE_ENTER,
 			plane, run, 0, 0, &res);
 	return res.a0;
